@@ -1,7 +1,10 @@
-# SDB 1.0.2
+#
+# SDB 1.0.6 (22.06.24)
 # mady by DDavid701
 #
 
+
+import platform
 
 if __name__ == '__main__':
     raise SystemExit("[!] Can't run as main")
@@ -9,7 +12,7 @@ if __name__ == '__main__':
 def get_ids(database):
     with open(database, 'r') as db:
         cont = db.readlines()
-    ids   = {}
+    ids = {}
     for c in enumerate(cont):
         c_split = str(c[1]).split('|')
         id = c_split[0]
@@ -31,9 +34,9 @@ def get_specific_id(database, sid):
             pass
 
 def init(output, file):
-    ver = '1.0.2'  # Do not edit this!
+    ver = '1.0.6'  # Do not edit this!
     if output == True:
-        print(f"SDB {ver}")
+        print(f"SDB {ver} running using {platform.python_version()}")
     if not file:
         raise SystemExit("[!] No file given")
     try:
@@ -48,9 +51,9 @@ def get_parts(string):
     try:
         parts = string.split(';')
         return parts
-    except Exception as e: print(e)
+    except Exception as e: print(f"Error: Couldn't get parts from '{string}'")
 
-def read(database, row):
+def read_row(database, row):
 
     if database == 'sdb': return "no database connected"
     with open(database, 'r') as db:
@@ -58,32 +61,58 @@ def read(database, row):
 
     tempsave = {}
     for line in enumerate(CONTENT):
-        tempsave[line[0]] = line[1]
+        try:
+            parts = str(line[1]).split('|')
+            # dataid = parts[0]
+            datacont = parts[1]
+            tempsave[line[0]] = datacont
+        except Exception as e: print(f"")
 
     try:
         if row == 0: row = 0
         else: row -= 1
-        return tempsave[int(row)]
+        return tempsave[row]
     except Exception as e:
-        print("[!] Row is corrupted or doesn't exist!")
+        print(f"[!] Row is corrupted or doesn't exist! {e}")
+        return None
+
+def read(database, id):
+
+    if database == 'sdb': return "no database connected"
+    with open(database, 'r') as db:
+        CONTENT = db.readlines()
+
+    tempsave = {}
+    for line in enumerate(CONTENT):
+        try:
+            parts = str(line[1]).split('|')
+            dataid = parts[0]
+            datacont = parts[1]
+            tempsave[dataid] = datacont
+        except Exception as e: print(f"Error: id doesn't exist or is corrupted!")
+    try:
+        if id in tempsave:
+            return tempsave[id]
+        else: return None
+    except Exception as e:
+        print("[!] Id is corrupted or doesn't exist!")
         return None
 
 def insert(database, data, id):
     if database == 'sdb': return "no database connected"
     ids = get_ids(database)
     if id in ids:
+        print(f"Error: Couldn't insert data, id already exists! {id}")
         pass
     else:
         try:
             with open(database, 'a') as db:
                 db.write(f'{id}|{data}\n')
-        except Exception as e:
-            print(e)
+        except Exception as e: print(f"Error: Couldn't insert data ({data}-{id})")
 
 def remove_row(database, row):
     if database == 'sdb': return "no database connected"
     try:
-
         contdict    = {}
         lines       = []
         cache_start = []
@@ -94,7 +123,6 @@ def remove_row(database, row):
         for line in enumerate(CONTENT):
             contdict[line[0]] = line[1]
         for line in enumerate(CONTENT):
-            cur_line_count = line[0]
             lines.append(line[1])
         cur_line_count = 0
         try:
@@ -112,13 +140,7 @@ def remove_row(database, row):
                 cur_line_count += 1
         except Exception as e: print(e)
 
-        print(cache_start)
-        print(cache_end)
-
         cache = cache_start + cache_end
-
-        print(cache)
-
         try:
             with open(database, 'w') as db:
                 db.write('')
@@ -127,8 +149,6 @@ def remove_row(database, row):
                 for cell in cache:
                     db.write(cell)
         except Exception as e: print(e)
-
-        print(lines)
     except Exception as e: print(e)
 
 def remove(database, id):
@@ -151,7 +171,7 @@ def remove(database, id):
             while curline != int(specs[2]):
                 cache_start.append(lines[curline])
                 curline += 1
-        except Exception as e: print(e)
+        except Exception as e: print("Error: id doesn't exist or is corrupted!")
 
         try:
             curline += 1
@@ -166,7 +186,6 @@ def remove(database, id):
             with open(database, 'w') as db:
                 db.write('')
             with open(database, 'a') as db:
-                cur_cell = 0
                 for cell in cache:
                     db.write(cell)
         except Exception as e: print(e)
