@@ -1,5 +1,5 @@
 #
-# SDB 1.0.6 (22.06.24)
+# SDB 1.0.7 (22.06.24)
 # mady by DDavid701
 #
 
@@ -34,7 +34,7 @@ def get_specific_id(database, sid):
             pass
 
 def init(output, file):
-    ver = '1.0.6'  # Do not edit this!
+    ver = '1.0.7'  # Do not edit this!
     if output == True:
         print(f"SDB {ver} running using {platform.python_version()}")
     if not file:
